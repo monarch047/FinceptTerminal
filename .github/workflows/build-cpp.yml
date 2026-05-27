@@ -1,6 +1,9 @@
 name: Build Qt Terminal - All Platforms
 
 on:
+  push:
+    branches:
+      - main
   # Manual-only — release.yml handles tag builds / installer generation.
   workflow_dispatch:
 
