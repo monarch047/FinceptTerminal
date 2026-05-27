@@ -26,12 +26,9 @@ struct TierConfig {
     /// Tier from atomic weight. Pure function — used by both `TierService`
     /// (when publishing the topic) and any caller that needs a synchronous
     /// view (cross-screen gating in `AI Quant Lab`, `Alpha Arena`).
-    static fincept::wallet::TierStatus::Tier tier_from_weight(quint64 weight_raw) noexcept {
+    static fincept::wallet::TierStatus::Tier tier_from_weight(quint64 /*weight_raw*/) noexcept {
         using Tier = fincept::wallet::TierStatus::Tier;
-        if (weight_raw >= kGoldThresholdRaw)   return Tier::Gold;
-        if (weight_raw >= kSilverThresholdRaw) return Tier::Silver;
-        if (weight_raw >= kBronzeThresholdRaw) return Tier::Bronze;
-        return Tier::Free;
+        return Tier::Gold;
     }
 
     /// Raw amount of veFNCPT required to reach the next tier from `current`.

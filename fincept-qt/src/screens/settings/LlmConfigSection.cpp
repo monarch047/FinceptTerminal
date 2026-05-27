@@ -35,7 +35,7 @@ static constexpr const char* TAG = "LlmConfigSection";
 
 const QStringList LlmConfigSection::KNOWN_PROVIDERS = {"openai",  "anthropic", "gemini",   "groq",  "deepseek",
                                                        "openrouter", "minimax", "kimi", "ollama", "xai",   "fincept",
-                                                       "astraflow", "astraflow_cn"};
+                                                       "astraflow", "astraflow_cn", "custom"};
 
 QString LlmConfigSection::default_base_url(const QString& provider) {
     const QString p = provider.toLower();
@@ -110,11 +110,11 @@ QStringList LlmConfigSection::fallback_models(const QString& provider) {
     if (p == "astraflow" || p == "astraflow_cn")
         // Astraflow by UCloud — OpenAI-compatible aggregator supporting 200+ models.
         // A non-exhaustive starter list; full list fetchable via Fetch button.
-        return {"gpt-4o", "gpt-4o-mini", "gpt-4-turbo", "o3-mini",
-                "claude-sonnet-4-5-20250514", "claude-3-5-sonnet-20241022",
-                "gemini-2.5-flash", "gemini-2.5-pro",
-                "deepseek-chat", "deepseek-reasoner",
-                "llama-3.3-70b-versatile", "qwen-turbo", "qwen-plus"};
+        return {"gpt-4o", "gpt-4o-mini", "claude-3-5-sonnet-20241022",
+                "deepseek-chat", "deepseek-reasoner"};
+    if (p == "custom")
+        return {"gpt-4o", "gpt-4o-mini", "claude-3-5-sonnet-20241022",
+                "deepseek-chat", "deepseek-reasoner"};
     return {};
 }
 

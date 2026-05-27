@@ -224,7 +224,7 @@ void BuybackBurnPanel::apply_theme() {
     const QString font = font_stack();
 
     const QString ss = QStringLiteral(
-        "QWidget#buybackBurnPanel { background:%1; }"
+        "QWidget#buybackBurnPanel { background:%1; } /* %10 */"
         "QWidget#buybackBurnHead { background:%2; border-bottom:1px solid %3; }"
         "QLabel#buybackBurnTitle { color:%4; font-family:%5; font-size:11px;"
         "  font-weight:700; letter-spacing:1.4px; background:transparent; }"

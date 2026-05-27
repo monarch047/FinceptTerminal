@@ -22,7 +22,7 @@ namespace {
 using namespace fincept::ui;
 
 static const QString kStyle =
-    QStringLiteral("#asiaScreen { background: %1; }"
+    QStringLiteral("#asiaScreen { background: %1; } /* %6 */"
 
                    "#asiaHeader { background: %2; border-bottom: 2px solid %3; }"
                    "#asiaHeaderTitle { color: %4; font-size: 12px; font-weight: 700; background: transparent; }"

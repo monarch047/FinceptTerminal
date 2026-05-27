@@ -92,9 +92,8 @@ QString PythonSetupManager::python_path(const QString& venv_name) const {
 /// safe on 2-core netbooks (RAM-bound wheel unpack) and metered/slow connections.
 QStringList PythonSetupManager::uv_env_extra() const {
     const QString root = install_dir();
-    const int cores = QThread::idealThreadCount();
-    const int installs = std::clamp(cores, 2, 8);
-    const int downloads = std::clamp(cores * 2, 4, 8);
+    const int installs = 1;
+    const int downloads = 2;
     return {
         "UV_PYTHON_INSTALL_DIR=" + root + "/python",
         "UV_CACHE_DIR=" + root + "/uv-cache",

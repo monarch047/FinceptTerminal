@@ -1,4 +1,4 @@
-﻿#include "services/llm/LlmService.h"
+#include "services/llm/LlmService.h"
 #include "app/MonitorPickerDialog.h"
 #include "app/WindowFrame.h"
 #include "app/TerminalShell.h"
@@ -83,6 +83,8 @@
 #include <QSqlQuery>
 #include <QSslSocket>
 #include <QStandardPaths>
+#include <QThread>
+#include <QThreadPool>
 #include <QTimer>
 #include <QUuid>
 
@@ -688,6 +690,26 @@ int main(int argc, char* argv[]) {
         const QString sid = QUuid::createUuid().toString(QUuid::WithoutBraces);
         fincept::ScreenStateManager::instance().set_session_id(sid);
         LOG_INFO("App", "Session ID: " + sid);
+    }
+
+    // Cap thread pool count to optimize CPU usage on low-end systems
+    QThreadPool::globalInstance()->setMaxThreadCount(std::clamp(QThread::idealThreadCount() / 2, 2, 4));
+
+    // Initialize low-resource default settings if not already present
+    {
+        auto& repo = fincept::SettingsRepository::instance();
+        if (repo.get("portfolio.refresh_interval_ms").is_err() || repo.get("portfolio.refresh_interval_ms").value().isEmpty()) {
+            repo.set("portfolio.refresh_interval_ms", "120000", "portfolio");
+        }
+        if (repo.get("telemetry.local_enabled").is_err() || repo.get("telemetry.local_enabled").value().isEmpty()) {
+            repo.set("telemetry.local_enabled", "false", "general");
+        }
+        if (repo.get("telemetry.cloud_enabled").is_err() || repo.get("telemetry.cloud_enabled").value().isEmpty()) {
+            repo.set("telemetry.cloud_enabled", "false", "general");
+        }
+        if (repo.get("appearance.show_chat_bubble").is_err() || repo.get("appearance.show_chat_bubble").value().isEmpty()) {
+            repo.set("appearance.show_chat_bubble", "false", "appearance");
+        }
     }
 
     LOG_INFO("App", "Checking settings for legacy migration...");
