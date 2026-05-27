@@ -156,11 +156,19 @@ jobs:
         if: runner.os == 'Linux'
         working-directory: fincept-qt
         run: |
-          # Qt6 is installed via apt; tell CMake where to find it.
-          QT6_PREFIX=$(qmake6 -query QT_HOST_PREFIX 2>/dev/null || qmake -query QT_HOST_PREFIX 2>/dev/null || echo "/usr")
+          # Qt6 installed via apt on Ubuntu 22.04 puts its CMake config here.
+          # We must pass Qt6_DIR (not just CMAKE_PREFIX_PATH) because CMakeLists.txt
+          # only auto-probes when CMAKE_PREFIX_PATH is unset.
+          QT6_CMAKE_DIR="/usr/lib/x86_64-linux-gnu/cmake/Qt6"
+          if [ ! -d "$QT6_CMAKE_DIR" ]; then
+            # Fallback: ask qmake6 for the prefix and construct the path
+            QT_PREFIX=$(qmake6 -query QT_HOST_PREFIX 2>/dev/null || echo "/usr")
+            QT6_CMAKE_DIR="${QT_PREFIX}/lib/$(dpkg-architecture -qDEB_HOST_MULTIARCH 2>/dev/null || echo x86_64-linux-gnu)/cmake/Qt6"
+          fi
+          echo "Qt6 CMake dir: $QT6_CMAKE_DIR"
           cmake -B build -G Ninja \
             -DCMAKE_BUILD_TYPE=${{ env.BUILD_TYPE }} \
-            -DCMAKE_PREFIX_PATH="${QT6_PREFIX}" \
+            -DQt6_DIR="${QT6_CMAKE_DIR}" \
             -DCMAKE_C_COMPILER_LAUNCHER=ccache \
             -DCMAKE_CXX_COMPILER_LAUNCHER=ccache \
             ${{ matrix.cmake_extra }}
@@ -174,17 +182,17 @@ jobs:
           if [ -n "${OPENSSL_ROOT_DIR:-}" ]; then
             OPENSSL_ARG="-DOPENSSL_ROOT_DIR=${OPENSSL_ROOT_DIR}"
           fi
-          # On macOS, upstream code has deprecated QDateTime/lambda-capture warnings.
-          # Suppress -Werror so the pre-existing warnings don't fail our build.
-          MACOS_FLAGS=""
+          # On macOS, upstream code has deprecated QDateTime/lambda-capture warnings
+          # that Clang treats as errors (-Werror). Suppress to allow our build to pass.
+          MACOS_WARN_FLAGS=""
           if [ "${{ runner.os }}" = "macOS" ]; then
-            MACOS_FLAGS="-DCMAKE_C_COMPILER_LAUNCHER=ccache -DCMAKE_CXX_COMPILER_LAUNCHER=ccache -DCMAKE_CXX_FLAGS=-Wno-error"
+            MACOS_WARN_FLAGS="-DCMAKE_C_COMPILER_LAUNCHER=ccache -DCMAKE_CXX_COMPILER_LAUNCHER=ccache -DCMAKE_CXX_FLAGS=-Wno-error -DCMAKE_C_FLAGS=-Wno-error"
           fi
           cmake -B build \
             -DCMAKE_BUILD_TYPE=${{ env.BUILD_TYPE }} \
             -DCMAKE_PREFIX_PATH="${QT_ROOT_DIR}" \
             ${OPENSSL_ARG} \
-            ${MACOS_FLAGS} \
+            ${MACOS_WARN_FLAGS} \
             ${{ matrix.cmake_extra }}
 
       - name: Configure CMake (Windows ARM64)
