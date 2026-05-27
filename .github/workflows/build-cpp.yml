@@ -156,8 +156,11 @@ jobs:
         if: runner.os == 'Linux'
         working-directory: fincept-qt
         run: |
+          # Qt6 is installed via apt; tell CMake where to find it.
+          QT6_PREFIX=$(qmake6 -query QT_HOST_PREFIX 2>/dev/null || qmake -query QT_HOST_PREFIX 2>/dev/null || echo "/usr")
           cmake -B build -G Ninja \
             -DCMAKE_BUILD_TYPE=${{ env.BUILD_TYPE }} \
+            -DCMAKE_PREFIX_PATH="${QT6_PREFIX}" \
             -DCMAKE_C_COMPILER_LAUNCHER=ccache \
             -DCMAKE_CXX_COMPILER_LAUNCHER=ccache \
             ${{ matrix.cmake_extra }}
@@ -171,11 +174,17 @@ jobs:
           if [ -n "${OPENSSL_ROOT_DIR:-}" ]; then
             OPENSSL_ARG="-DOPENSSL_ROOT_DIR=${OPENSSL_ROOT_DIR}"
           fi
+          # On macOS, upstream code has deprecated QDateTime/lambda-capture warnings.
+          # Suppress -Werror so the pre-existing warnings don't fail our build.
+          MACOS_FLAGS=""
+          if [ "${{ runner.os }}" = "macOS" ]; then
+            MACOS_FLAGS="-DCMAKE_C_COMPILER_LAUNCHER=ccache -DCMAKE_CXX_COMPILER_LAUNCHER=ccache -DCMAKE_CXX_FLAGS=-Wno-error"
+          fi
           cmake -B build \
             -DCMAKE_BUILD_TYPE=${{ env.BUILD_TYPE }} \
             -DCMAKE_PREFIX_PATH="${QT_ROOT_DIR}" \
             ${OPENSSL_ARG} \
-            ${{ runner.os == 'macOS' && '-DCMAKE_C_COMPILER_LAUNCHER=ccache -DCMAKE_CXX_COMPILER_LAUNCHER=ccache' || '' }} \
+            ${MACOS_FLAGS} \
             ${{ matrix.cmake_extra }}
 
       - name: Configure CMake (Windows ARM64)
